@@ -3,7 +3,7 @@ import math
 from config import *
 from player import Player
 from map import world_map
-
+from rayCasting import ray_casting
 
 if __name__ == '__main__':
     pygame.init()
@@ -19,6 +19,9 @@ if __name__ == '__main__':
 
         player.movement()
         screen.fill('black')
+
+        ray_casting(screen, player.pos, player.angle)
+
         pygame.draw.circle(screen, 'green', player.pos, 15)
         pygame.draw.line(screen, 'green', player.pos, (player.x + WIDTH * math.cos(player.angle),
                                                        player.y + WIDTH * math.sin(player.angle)))
@@ -27,4 +30,3 @@ if __name__ == '__main__':
 
         pygame.display.flip()
         clock.tick(FPS)
-

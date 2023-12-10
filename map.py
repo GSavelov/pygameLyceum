@@ -3,10 +3,10 @@ from config import *
 map_model = [
     'WWWWWWWWWWWW',
     'W..........W',
-    'W..........W',
-    'W..........W',
-    'W..........W',
-    'W..........W',
+    'W....WW....W',
+    'W...W..W...W',
+    'W...W..W...W',
+    'W....WW....W',
     'W..........W',
     'WWWWWWWWWWWW'
 ]
