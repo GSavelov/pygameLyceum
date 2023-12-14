@@ -14,8 +14,8 @@ def ray_casting(surface, pos, angle):
             y = y0 + depth * sin_a
             if (x // TILE * TILE, y // TILE * TILE) in world_map:
                 depth *= math.cos(angle - cur_angle)
-                c = 255 / (1 + depth * depth * 0.0001)
-                color = (c, c, c)
+                c = 255 / (1 + depth * depth * 0.00002)
+                color = (c, c // 2, c // 3)
                 proj_height = PROJ_COEFF / (depth + 0.000001)
                 pygame.draw.rect(surface, color, (ray * SCALE, H_HEIGHT - proj_height // 2, SCALE, proj_height))
                 break
