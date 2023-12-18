@@ -11,6 +11,11 @@ FPS = 60
 FPS_DRAW_POS = WIDTH - 60, 5
 TILE = 100
 
+# Minimap settings
+MAP_SCALE = 5
+MAP_TILE = TILE // MAP_SCALE
+MAP_DRAW_POS = (0, HEIGHT - HEIGHT // MAP_SCALE)
+
 # Player settings
 player_pos = H_WIDTH, H_HEIGHT
 player_angle = 0
@@ -19,7 +24,7 @@ player_speed = 2
 # Ray casting settings
 FOV = math.pi / 3
 H_FOV = FOV / 2
-NUM_RAYS = 300
+NUM_RAYS = 600
 MAX_DEPTH = 800
 DELTA_A = FOV / NUM_RAYS
 DISTANCE = NUM_RAYS / (2 * math.tan(H_FOV))
