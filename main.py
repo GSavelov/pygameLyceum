@@ -1,7 +1,6 @@
 import pygame
 from config import *
 from player import Player
-from rayCasting import ray_casting
 from drawing import Drawing
 
 if __name__ == '__main__':

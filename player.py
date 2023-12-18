@@ -1,5 +1,5 @@
 import pygame
-import math
+from math import cos, sin
 from config import *
 
 
@@ -13,8 +13,8 @@ class Player:
         return self.x, self.y
 
     def movement(self):
-        sin_a = math.sin(self.angle)
-        cos_a = math.cos(self.angle)
+        sin_a = sin(self.angle)
+        cos_a = cos(self.angle)
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w]:
             self.x += player_speed * cos_a

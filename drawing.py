@@ -18,4 +18,4 @@ class Drawing:
     def fps(self, clock):
         fps = str(int(clock.get_fps()))
         render = self.font.render(fps, 0, 'red')
-        self.surface.blit(render, (WIDTH - 60, 5))
+        self.surface.blit(render, FPS_DRAW_POS)
