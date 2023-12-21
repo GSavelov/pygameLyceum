@@ -9,13 +9,15 @@ class Drawing:
         self.surface = surface
         self.map_surface = map_surface
         self.font = pygame.font.Font(None, 36)
+        self.textures = {'1': pygame.image.load('textures/texture_1.png').convert(),
+                         '2': pygame.image.load('textures/texture_2.png').convert()}
 
     def background(self):
         pygame.draw.rect(self.surface, SKY, (0, 0, WIDTH, H_HEIGHT))
         pygame.draw.rect(self.surface, GRAY, (0, H_HEIGHT, WIDTH, H_HEIGHT))
 
     def world(self, pos, angle):
-        ray_casting(self.surface, pos, angle)
+        ray_casting(self.surface, pos, angle, self.textures)
 
     def fps(self, clock):
         fps = str(int(clock.get_fps()))

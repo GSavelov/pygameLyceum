@@ -8,7 +8,7 @@ def mapping(a, b):
     return (a // TILE) * TILE, (b // TILE) * TILE
 
 
-def ray_casting(surface, pos, angle):
+def ray_casting(surface, pos, angle, textures):
     ox, oy = pos
     xm, ym = mapping(ox, oy)
     cur_angle = angle - H_FOV
@@ -21,23 +21,31 @@ def ray_casting(surface, pos, angle):
         x, dx = (xm + TILE, 1) if cos_a >= 0 else (xm, -1)
         for i in range(0, WIDTH, TILE):
             depth_v = (x - ox) / cos_a
-            y = oy + depth_v * sin_a
-            if mapping(x + dx, y) in world_map:
+            yv = oy + depth_v * sin_a
+            tile_v = mapping(x + dx, yv)
+            if tile_v in world_map:
+                texture_v = world_map[tile_v]
                 break
             x += dx * TILE
 
         y, dy = (ym + TILE, 1) if sin_a >= 0 else (ym, -1)
         for i in range(0, HEIGHT, TILE):
             depth_h = (y - oy) / sin_a
-            x = ox + depth_h * cos_a
-            if mapping(x, y + dy) in world_map:
+            xh = ox + depth_h * cos_a
+            tile_h = mapping(xh, y + dy)
+            if tile_h in world_map:
+                texture_h = world_map[tile_h]
                 break
             y += dy * TILE
 
-        depth = depth_v if depth_v < depth_h else depth_h
+        depth, offset, texture = (depth_v, yv, texture_v) if depth_v < depth_h else (depth_h, xh, texture_h)
+        offset = int(offset) % TILE
         depth *= cos(angle - cur_angle)
-        proj_height = PROJ_COEFF / depth
-        c = 255 / (1 + depth * depth * 0.00002)
-        color = (c, c // 2, c // 3)
-        pygame.draw.rect(surface, color, (ray * SCALE, H_HEIGHT - proj_height // 2, SCALE, proj_height))
+        depth = max(depth, 0.00001)
+        proj_height = min((PROJ_COEFF / depth), 2 * HEIGHT)
+
+        wall_column = textures[texture].subsurface(offset * TEXTURE_SCALE, 0, TEXTURE_SCALE, TEXTURE_WIDTH)
+        wall_column = pygame.transform.scale(wall_column, (SCALE, proj_height))
+        surface.blit(wall_column, (ray * SCALE, H_HEIGHT - proj_height // 2))
+
         cur_angle += DELTA_A
