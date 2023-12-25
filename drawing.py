@@ -9,11 +9,14 @@ class Drawing:
         self.surface = surface
         self.map_surface = map_surface
         self.font = pygame.font.Font(None, 36)
-        self.textures = {'1': pygame.image.load('textures/texture_1.png').convert(),
-                         '2': pygame.image.load('textures/texture_2.png').convert()}
+        self.textures = {'1': pygame.image.load('textures/texture_3.png').convert(),
+                         's': pygame.image.load('textures/sky_texture.png').convert()}
 
-    def background(self):
-        pygame.draw.rect(self.surface, SKY, (0, 0, WIDTH, H_HEIGHT))
+    def background(self, angle):
+        offset = -5 * math.degrees(angle) % WIDTH
+        self.surface.blit(self.textures['s'], (offset, 0))
+        self.surface.blit(self.textures['s'], (offset + WIDTH, 0))
+        self.surface.blit(self.textures['s'], (offset - WIDTH, 0))
         pygame.draw.rect(self.surface, GRAY, (0, H_HEIGHT, WIDTH, H_HEIGHT))
 
     def world(self, pos, angle):

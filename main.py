@@ -20,7 +20,7 @@ if __name__ == '__main__':
         player.movement()
         screen.fill('black')
 
-        drawing.background()
+        drawing.background(player.angle)
         drawing.world(player.pos, player.angle)
         drawing.fps(clock)
         drawing.minimap(player)
