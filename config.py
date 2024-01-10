@@ -18,7 +18,7 @@ MAP_DRAW_POS = (0, HEIGHT - HEIGHT // MAP_SCALE)
 
 # Player settings
 player_pos = H_WIDTH, H_HEIGHT
-player_angle = 0
+player_angle = math.pi
 player_speed = 2
 
 # Ray casting settings
@@ -30,6 +30,10 @@ DELTA_A = FOV / NUM_RAYS
 DISTANCE = NUM_RAYS / (2 * math.tan(H_FOV))
 PROJ_COEFF = 2 * DISTANCE * TILE
 SCALE = WIDTH // NUM_RAYS
+
+# Sprites settings
+DOUBLE_PI = math.pi * 2
+CENTER_RAY = NUM_RAYS // 2 - 1
 
 # Texture settings
 TEXTURE_WIDTH, TEXTURE_HEIGHT = 1200, 1200

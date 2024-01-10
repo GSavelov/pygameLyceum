@@ -1,6 +1,6 @@
 import pygame
 from config import *
-from rayCasting import ray_casting
+from objects import *
 from map import mini_map
 
 
@@ -19,8 +19,11 @@ class Drawing:
         self.surface.blit(self.textures['s'], (offset - WIDTH, 0))
         pygame.draw.rect(self.surface, GRAY, (0, H_HEIGHT, WIDTH, H_HEIGHT))
 
-    def world(self, pos, angle):
-        ray_casting(self.surface, pos, angle, self.textures)
+    def world(self, world_objects):
+        for obj in sorted(world_objects, key=lambda n: n[0], reverse=True):
+            if obj[0]:
+                _, object, object_pos = obj
+                self.surface.blit(object, object_pos)
 
     def fps(self, clock):
         fps = str(int(clock.get_fps()))
