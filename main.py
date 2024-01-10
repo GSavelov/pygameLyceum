@@ -1,5 +1,3 @@
-import pygame
-from config import *
 from rayCasting import ray_casting
 from objects import *
 from player import Player

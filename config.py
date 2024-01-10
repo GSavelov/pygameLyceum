@@ -12,13 +12,14 @@ FPS_DRAW_POS = WIDTH - 60, 5
 TILE = 100
 
 # Minimap settings
+MAP_COLOR = (171, 10, 10)
 MAP_SCALE = 5
 MAP_TILE = TILE // MAP_SCALE
 MAP_DRAW_POS = (0, HEIGHT - HEIGHT // MAP_SCALE)
 
 # Player settings
 player_pos = H_WIDTH, H_HEIGHT
-player_angle = math.pi
+player_angle = 0
 player_speed = 2
 
 # Ray casting settings
@@ -34,6 +35,7 @@ SCALE = WIDTH // NUM_RAYS
 # Sprites settings
 DOUBLE_PI = math.pi * 2
 CENTER_RAY = NUM_RAYS // 2 - 1
+FAKE_RAYS = 100
 
 # Texture settings
 TEXTURE_WIDTH, TEXTURE_HEIGHT = 1200, 1200
@@ -42,3 +44,4 @@ TEXTURE_SCALE = TEXTURE_WIDTH // TILE
 # Colors
 SKY = (115, 223, 250)
 GRAY = (66, 66, 66)
+DARKGRAY = (42, 43, 46)
