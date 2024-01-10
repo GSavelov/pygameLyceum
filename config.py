@@ -5,6 +5,7 @@ WIDTH = 1200
 HEIGHT = 800
 H_WIDTH = WIDTH // 2
 H_HEIGHT = HEIGHT // 2
+P_HEIGHT = 5 * HEIGHT
 
 # Game settings
 FPS = 60
@@ -12,15 +13,17 @@ FPS_DRAW_POS = WIDTH - 60, 5
 TILE = 100
 
 # Minimap settings
-MAP_COLOR = (171, 10, 10)
-MAP_SCALE = 5
+MINIMAP_SCALE = 5
+MINIMAP = (WIDTH // MINIMAP_SCALE, HEIGHT // MINIMAP_SCALE)
+MAP_SCALE = 2 * MINIMAP_SCALE
 MAP_TILE = TILE // MAP_SCALE
-MAP_DRAW_POS = (0, HEIGHT - HEIGHT // MAP_SCALE)
+MAP_DRAW_POS = (0, HEIGHT - HEIGHT // MINIMAP_SCALE)
+MAP_COLOR = (171, 10, 10)
 
 # Player settings
 player_pos = H_WIDTH, H_HEIGHT
 player_angle = 0
-player_speed = 2
+player_speed = 4
 
 # Ray casting settings
 FOV = math.pi / 3

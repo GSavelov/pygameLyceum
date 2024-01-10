@@ -6,7 +6,7 @@ from drawing import Drawing
 if __name__ == '__main__':
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    map_surface = pygame.Surface((WIDTH // MAP_SCALE, HEIGHT // MAP_SCALE))
+    map_surface = pygame.Surface(MINIMAP)
 
     sprites = Sprites()
     clock = pygame.time.Clock()
@@ -18,6 +18,9 @@ if __name__ == '__main__':
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
 
         player.movement()
         screen.fill('black')
