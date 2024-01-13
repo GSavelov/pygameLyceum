@@ -9,7 +9,7 @@ P_HEIGHT = 5 * HEIGHT
 D_HEIGHT = 2 * HEIGHT
 
 # Game settings
-FPS = 60
+FPS = 120
 FPS_DRAW_POS = WIDTH - 60, 5
 TILE = 100
 

@@ -1,4 +1,4 @@
-from rayCasting import ray_casting
+from rayCasting import walls_ray_cast
 from objects import *
 from player import Player
 from drawing import Drawing
@@ -27,7 +27,7 @@ if __name__ == '__main__':
         screen.fill('black')
 
         drawing.background(player.angle)
-        walls = ray_casting(player, drawing.textures)
+        walls = walls_ray_cast(player, drawing.textures)
         drawing.world(walls + [obj.object_locate(player) for obj in sprites.list_of_objects])
         drawing.fps(clock)
         drawing.minimap(player)

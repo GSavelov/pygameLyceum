@@ -1,25 +1,22 @@
 import pygame
+from numba import njit
 from math import sin, cos
 from config import *
 from map import world_map, WORLD_WIDTH, WORLD_HEIGHT
 
 
+@njit(fastmath=True)
 def mapping(a, b):
     return (a // TILE) * TILE, (b // TILE) * TILE
 
 
-def ray_casting(player, textures):
-    walls = []
+@njit(fastmath=True)
+def ray_casting(player_pos, player_angle, world_map):
+    casted_walls = []
     texture_v, texture_h = 1, 1
-    """Фикс ошибки при выходе за карту
-    
-    Устанавливается значение текстуры 'по умолчанию'.
-    В случае если пересечение луча со стеной по горизонтали
-    или вертикали не будет найдено программа не вылетит с ошибкой.
-    """
-    ox, oy = player.pos
+    ox, oy = player_pos
     xm, ym = mapping(ox, oy)
-    cur_angle = player.angle - H_FOV
+    cur_angle = player_angle - H_FOV
     for ray in range(NUM_RAYS):
         sin_a = sin(cur_angle)
         cos_a = cos(cur_angle)
@@ -48,15 +45,23 @@ def ray_casting(player, textures):
 
         depth, offset, texture = (depth_v, yv, texture_v) if depth_v < depth_h else (depth_h, xh, texture_h)
         offset = int(offset) % TILE
-        depth *= cos(player.angle - cur_angle)
+        depth *= cos(player_angle - cur_angle)
         depth = max(depth, 0.00001)
         proj_height = min((PROJ_COEFF / depth), P_HEIGHT)
 
-        wall_column = textures[texture].subsurface(offset * TEXTURE_SCALE, 0, TEXTURE_SCALE, TEXTURE_WIDTH)
-        wall_column = pygame.transform.scale(wall_column, (SCALE, proj_height))
-
-        wall_pos = (ray * SCALE, H_HEIGHT - proj_height // 2)
-        walls.append((depth, wall_column, wall_pos))
+        casted_walls.append((depth, offset, proj_height, texture))
 
         cur_angle += DELTA_A
+    return casted_walls
+
+
+def walls_ray_cast(player, textures):
+    casted_walls = ray_casting(player.pos, player.angle, world_map)
+    walls = []
+    for ray, casted_values in enumerate(casted_walls):
+        depth, offset, proj_height, texture = casted_values
+        wall_column = textures[texture].subsurface(offset * TEXTURE_SCALE, 0, TEXTURE_SCALE, TEXTURE_WIDTH)
+        wall_column = pygame.transform.scale(wall_column, (SCALE, proj_height))
+        wall_pos = (ray * SCALE, H_HEIGHT - proj_height // 2)
+        walls.append((depth, wall_column, wall_pos))
     return walls
