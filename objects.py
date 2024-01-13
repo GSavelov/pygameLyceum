@@ -52,7 +52,7 @@ class SpriteObject:
                     if theta in angle:
                         self.obj = self.positions[angle]
                         break
-            # TODO: Исправить не статичные спрайты с анимацией
+
             sprite_object = self.obj
             if self.animation and distance < self.anim_dist:
                 sprite_object = self.animation[0]
@@ -96,7 +96,7 @@ class Sprites:
                 'scale': 1,
                 'animation': deque(
                     [pygame.image.load(f'sprites/cacodemon/animation/img_{i}.png') for i in range(9)]),
-                'anim_dist': 800,
+                'anim_dist': 400,
                 'anim_speed': 20,
                 'blocked': True
 
