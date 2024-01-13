@@ -1,22 +1,25 @@
 import pygame
 from config import *
+from collections import deque
 
 
 class SpriteObject:
-    def __init__(self, obj, static, pos, shift, scale):
-        self.obj = obj
-        self.static = static
+    def __init__(self, parameters, pos):
+        self.obj = parameters['sprite']
+        self.view_angles = parameters['view_angles']
+        self.shift = parameters['shift']
+        self.scale = parameters['scale']
+        self.animation = parameters['animation']
+        self.anim_dist = parameters['anim_dist']
+        self.anim_speed = parameters['anim_speed']
+        self.anim_count = 0
         self.pos = self.x, self.y = pos[0] * TILE, pos[1] * TILE
-        self.shift = shift
-        self.scale = scale
 
-        if not static:
+        if self.view_angles:
             self.angles = [frozenset(range(i, i + 45)) for i in range(0, 360, 45)]
             self.positions = {angle: pos for angle, pos in zip(self.angles, self.obj)}
 
-    def object_locate(self, player, walls):
-        fake_walls = [walls[0] for _ in range(FAKE_RAYS)] + walls + [walls[-1] for _ in range(FAKE_RAYS)]
-
+    def object_locate(self, player):
         dx, dy = self.x - player.x, self.y - player.y
         distance = math.sqrt(dx ** 2 + dy ** 2)
 
@@ -31,12 +34,13 @@ class SpriteObject:
         distance *= math.cos(H_FOV - current_ray * DELTA_A)
 
         fake_ray = current_ray + FAKE_RAYS
-        if 0 <= fake_ray <= NUM_RAYS - 1 + 2 * FAKE_RAYS and distance < fake_walls[fake_ray][0]:
-            proj_height = int(PROJ_COEFF / distance * self.scale)
+        if 0 <= fake_ray <= FAKE_RAYS_RANGE and distance > 30:
+            proj_height = min(int(PROJ_COEFF / distance * self.scale), D_HEIGHT)
+            # Ограничение проекционной высоты спрайта (В ином случае при приближении падает fps)
             half_proj_height = proj_height // 2
             shift = half_proj_height * self.shift
 
-            if not self.static:
+            if self.view_angles:
                 if theta <= 0:
                     theta += DOUBLE_PI
                 theta = 360 - int(math.degrees(theta))
@@ -45,24 +49,77 @@ class SpriteObject:
                     if theta in angle:
                         self.obj = self.positions[angle]
                         break
+            # TODO: Исправить не статичные спрайты с анимацией
+            sprite_object = self.obj
+            if self.animation and distance < self.anim_dist:
+                sprite_object = self.animation[0]
+                if self.anim_count < self.anim_speed:
+                    self.anim_count += 1
+                else:
+                    self.animation.rotate()
+                    self.anim_count = 0
+            """Анимация спрайтов
+            
+            Используется массив deque из built-in библиотеки collections,
+            так как умеет крайне быстро перемещать первый элемент в конец
+            массива.
+            """
 
             sprite_pos = (current_ray * SCALE - half_proj_height, H_HEIGHT - half_proj_height + shift)
-            sprite = pygame.transform.scale(self.obj, (proj_height, proj_height))
+            sprite = pygame.transform.scale(sprite_object, (proj_height, proj_height))
             return distance, sprite, sprite_pos
         return (False,)
 
 
 class Sprites:
     def __init__(self):
-        self.sprite_types = {
-            'barrel': pygame.image.load('sprites/barrel/frame_0.png').convert_alpha(),
-            'column': pygame.image.load('sprites/flambeau/frame_0.png').convert_alpha(),
-            'cacodemon': [pygame.image.load(f'sprites/cacodemon/state_{i}.png').convert_alpha() for i in range(8)]
+        self.sprites = {
+            'barrel': {
+                'sprite': pygame.image.load('sprites/barrel/barrel.png').convert_alpha(),
+                'view_angles': None,
+                'shift': 1.5,
+                'scale': 0.4,
+                'animation': deque(
+                    [pygame.image.load(f'sprites/barrel/animation/img_{i}.png') for i in range(12)]),
+                'anim_dist': 800,
+                'anim_speed': 10
+
+            },
+            'cacodemon': {
+                'sprite': [pygame.image.load(f'sprites/cacodemon/state_{i}.png').convert_alpha() for i in range(8)],
+                'view_angles': True,
+                'shift': 0.1,
+                'scale': 1,
+                'animation': deque(
+                    [pygame.image.load(f'sprites/cacodemon/animation/img_{i}.png') for i in range(9)]),
+                'anim_dist': 800,
+                'anim_speed': 20
+            },
+            'flambeau': {
+                'sprite': pygame.image.load('sprites/flambeau/flambeau.png').convert_alpha(),
+                'view_angles': None,
+                'shift': 1.5,
+                'scale': 0.5,
+                'animation': None,
+                'anim_dist': 800,
+                'anim_speed': 10},
+            'orb': {
+                'sprite': pygame.image.load('sprites/orb/orb.png').convert_alpha(),
+                'view_angles': None,
+                'shift': 0.1,
+                'scale': 0.5,
+                'animation': deque(
+                    [pygame.image.load(f'sprites/orb/animation/img_{i}.png') for i in range(8)]),
+                'anim_dist': 800,
+                'anim_speed': 20}
+
         }
+
         self.list_of_objects = [
-            SpriteObject(self.sprite_types['barrel'], True, (2.2, 3), 1.5, 0.5),
-            SpriteObject(self.sprite_types['barrel'], True, (2.2, 5), 1.5, 0.5),
-            SpriteObject(self.sprite_types['column'], True, (9.8, 3), 1.5, 0.5),
-            SpriteObject(self.sprite_types['column'], True, (9.8, 5), 1.5, 0.5),
-            SpriteObject(self.sprite_types['cacodemon'], False, (9, 4), 0.2, 1)
+            SpriteObject(self.sprites['barrel'], (2.2, 3)),
+            SpriteObject(self.sprites['barrel'], (2.2, 5)),
+            SpriteObject(self.sprites['cacodemon'], (10, 5.5)),
+            SpriteObject(self.sprites['flambeau'], (10.9, 4)),
+            SpriteObject(self.sprites['flambeau'], (10.9, 7)),
+            SpriteObject(self.sprites['orb'], (2.2, 4))
         ]
