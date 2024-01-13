@@ -6,6 +6,7 @@ from drawing import Drawing
 if __name__ == '__main__':
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.mouse.set_visible(False)
     map_surface = pygame.Surface(MINIMAP)
 
     sprites = Sprites()
