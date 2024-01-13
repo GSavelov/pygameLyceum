@@ -11,7 +11,7 @@ if __name__ == '__main__':
 
     sprites = Sprites()
     clock = pygame.time.Clock()
-    player = Player()
+    player = Player(sprites)
     drawing = Drawing(screen, map_surface)
 
     running = True

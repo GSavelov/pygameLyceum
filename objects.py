@@ -12,8 +12,11 @@ class SpriteObject:
         self.animation = parameters['animation']
         self.anim_dist = parameters['anim_dist']
         self.anim_speed = parameters['anim_speed']
+        self.blocked = parameters['blocked']
+        self.side = 25
         self.anim_count = 0
         self.pos = self.x, self.y = pos[0] * TILE, pos[1] * TILE
+        self.pos = self.x - self.side // 2, self.y - self.side // 2
 
         if self.view_angles:
             self.angles = [frozenset(range(i, i + 45)) for i in range(0, 360, 45)]
@@ -82,7 +85,8 @@ class Sprites:
                 'animation': deque(
                     [pygame.image.load(f'sprites/barrel/animation/img_{i}.png') for i in range(12)]),
                 'anim_dist': 800,
-                'anim_speed': 10
+                'anim_speed': 10,
+                'blocked': True
 
             },
             'cacodemon': {
@@ -93,7 +97,9 @@ class Sprites:
                 'animation': deque(
                     [pygame.image.load(f'sprites/cacodemon/animation/img_{i}.png') for i in range(9)]),
                 'anim_dist': 800,
-                'anim_speed': 20
+                'anim_speed': 20,
+                'blocked': True
+
             },
             'flambeau': {
                 'sprite': pygame.image.load('sprites/flambeau/flambeau.png').convert_alpha(),
@@ -102,7 +108,9 @@ class Sprites:
                 'scale': 0.5,
                 'animation': None,
                 'anim_dist': 800,
-                'anim_speed': 10},
+                'anim_speed': 10,
+                'blocked': True
+            },
             'orb': {
                 'sprite': pygame.image.load('sprites/orb/orb.png').convert_alpha(),
                 'view_angles': None,
@@ -111,7 +119,9 @@ class Sprites:
                 'animation': deque(
                     [pygame.image.load(f'sprites/orb/animation/img_{i}.png') for i in range(8)]),
                 'anim_dist': 800,
-                'anim_speed': 20}
+                'anim_speed': 20,
+                'blocked': True
+            }
 
         }
 

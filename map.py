@@ -1,3 +1,5 @@
+import pygame
+
 from config import *
 
 _ = False
@@ -24,10 +26,12 @@ WORLD_WIDTH = len(matrix_map[0]) * TILE
 WORLD_HEIGHT = len(matrix_map) * TILE
 world_map = {}
 mini_map = set()
+wall_collisions = []
 for j, row in enumerate(matrix_map):
     for i, char in enumerate(row):
         if char:
             mini_map.add((i * MAP_TILE, j * MAP_TILE))
+            wall_collisions.append(pygame.Rect(i * TILE, j * TILE, TILE, TILE))
             if char == 1:
                 world_map[(i * TILE, j * TILE)] = 1
             elif char == 2:
