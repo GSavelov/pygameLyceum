@@ -1,4 +1,3 @@
-import pygame
 from math import sin, cos
 from numba import njit
 from config import *
@@ -15,8 +14,8 @@ def ray_cast_npc(npc_x, npc_y, world_map, p_pos):
     cur_angle += math.pi
 
     sin_a = sin(cur_angle)
-    cos_a = cos(cur_angle)
     sin_a = sin_a if sin_a else 0.000001
+    cos_a = cos(cur_angle)
     cos_a = cos_a if cos_a else 0.000001
 
     x, dx = (xm + TILE, 1) if cos_a >= 0 else (xm, -1)
@@ -47,7 +46,7 @@ class Interaction:
 
     def interaction_objects(self):
         if self.player.shot and self.drawing.shot_anim_trigger:
-            for obj in sorted(self.sprites.list_of_objects, key=lambda obj: obj.distance):
+            for obj in sorted(self.sprites.list_of_objects, key=lambda object: object.distance):
                 if obj.on_fire[1]:
                     if obj.is_dead != 'immortal' and not obj.is_dead:
                         if ray_cast_npc(obj.x, obj.y, world_map, self.player.pos):
@@ -55,3 +54,19 @@ class Interaction:
                             obj.blocked = None
                             self.drawing.shot_anim_trigger = False
                     break
+
+    def npc_action(self):
+        for obj in self.sprites.list_of_objects:
+            if obj.flag == 'npc' and not obj.is_dead:
+                if ray_cast_npc(obj.x, obj.y, world_map, self.player.pos):
+                    obj.npc_action_trigger = True
+                    self.npc_move(obj)
+                else:
+                    obj.npc_action_trigger = False
+
+    def npc_move(self, obj):
+        if obj.distance > TILE:
+            dx = obj.x - self.player.pos[0]
+            dy = obj.y - self.player.pos[1]
+            obj.x = obj.x + 1 if dx < 0 else obj.x - 1
+            obj.y = obj.y + 1 if dy < 0 else obj.y - 1

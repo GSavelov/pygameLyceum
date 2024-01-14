@@ -39,6 +39,7 @@ if __name__ == '__main__':
         drawing.weapon([shot, sprites.shot])
 
         interaction.interaction_objects()
+        interaction.npc_action()
 
         pygame.display.flip()
         clock.tick(FPS)

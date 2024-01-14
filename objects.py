@@ -118,11 +118,11 @@ class SpriteObject:
 
     def npc_action(self):
         sprite_object = self.action[0]
-        if self.animation_count < self.anim_speed:
-            self.animation_count += 1
+        if self.anim_count < self.anim_speed:
+            self.anim_count += 1
         else:
             self.action.rotate()
-            self.animation_count = 0
+            self.anim_count = 0
         return sprite_object
 
 
