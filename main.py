@@ -12,7 +12,7 @@ if __name__ == '__main__':
     sprites = Sprites()
     clock = pygame.time.Clock()
     player = Player(sprites)
-    drawing = Drawing(screen, map_surface)
+    drawing = Drawing(screen, map_surface, player)
 
     running = True
     while running:
@@ -22,15 +22,19 @@ if __name__ == '__main__':
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == pygame.BUTTON_LEFT and not player.shot:
+                    player.shot = True
 
         player.movement()
         screen.fill('black')
 
         drawing.background(player.angle)
-        walls = walls_ray_cast(player, drawing.textures)
+        walls, shot = walls_ray_cast(player, drawing.textures)
         drawing.world(walls + [obj.object_locate(player) for obj in sprites.list_of_objects])
         drawing.fps(clock)
         drawing.minimap(player)
+        drawing.weapon([shot, sprites.shot])
 
         pygame.display.flip()
         clock.tick(FPS)

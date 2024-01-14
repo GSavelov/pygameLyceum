@@ -3,9 +3,10 @@ from map import mini_map
 
 
 class Drawing:
-    def __init__(self, surface, map_surface):
+    def __init__(self, surface, map_surface, player):
         self.surface = surface
         self.map_surface = map_surface
+        self.player = player
         self.font = pygame.font.Font(None, 36)
         self.textures = {1: pygame.image.load('textures/brick_wall.png').convert(),
                          2: pygame.image.load('textures/brick_moss_wall.png').convert(),
@@ -13,6 +14,20 @@ class Drawing:
                          4: pygame.image.load('textures/doom_metal_wall.png').convert(),
                          5: pygame.image.load('textures/doom_metal_sheet_wall.png').convert(),
                          's': pygame.image.load('textures/doom_skybox.png').convert()}
+        """Отрисовка оружия"""
+        self.w_base_sprite = pygame.image.load('sprites/shooting/shotgun.png').convert_alpha()
+        self.w_shot_animation = deque([pygame.image.load(f'sprites/shooting/shotgun/img_{i}.png') for i in range(20)])
+        self.w_rect = self.w_base_sprite.get_rect()
+        self.w_pos = (H_WIDTH - self.w_rect.width // 2, HEIGHT - self.w_rect.height)
+        self.shot_length = len(self.w_shot_animation)
+        self.shot_length_count = 0
+        self.shot_anim_speed = 4
+        self.shot_anim_count = 0
+        self.shot_anim_trigger = True
+        """Свойства эффекта выстрела"""
+        self.sfx = deque([pygame.image.load(f'sprites/shooting/sfx/img_{i}.png') for i in range(9)])
+        self.sfx_length_count = 0
+        self.sfx_length = len(self.sfx)
 
     def background(self, angle):
         offset = -5 * math.degrees(angle) % WIDTH
@@ -41,3 +56,31 @@ class Drawing:
         for x, y in mini_map:
             pygame.draw.rect(self.map_surface, MAP_COLOR, (x, y, MAP_TILE, MAP_TILE), 5)
         self.surface.blit(self.map_surface, MAP_DRAW_POS)
+
+    def weapon(self, shots):
+        if self.player.shot:
+            self.shot_proj = min(shots)[1] // 2
+            self.bullet_sfx()
+            shot_sprite = self.w_shot_animation[0]
+            self.surface.blit(shot_sprite, self.w_pos)
+            self.shot_anim_count += 1
+            if self.shot_anim_count == self.shot_anim_speed:
+                self.w_shot_animation.rotate(-1)
+                self.shot_anim_count = 0
+                self.shot_length_count += 1
+                self.shot_anim_trigger = False
+            if self.shot_length_count == self.shot_length:
+                self.player.shot = False
+                self.shot_length_count = 0
+                self.sfx_length_count = 0
+                self.shot_anim_trigger = True
+        else:
+            self.surface.blit(self.w_base_sprite, self.w_pos)
+
+    def bullet_sfx(self):
+        if self.sfx_length_count < self.sfx_length:
+            sfx = pygame.transform.scale(self.sfx[0], (self.shot_proj, self.shot_proj))
+            sfx_rect = sfx.get_rect()
+            self.surface.blit(sfx, (H_WIDTH - sfx_rect.width // 2, H_HEIGHT - sfx_rect.height // 2))
+            self.sfx_length_count += 1
+            self.sfx.rotate(-1)
