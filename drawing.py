@@ -24,6 +24,7 @@ class Drawing:
         self.shot_anim_speed = 4
         self.shot_anim_count = 0
         self.shot_anim_trigger = True
+        self.shot_sound = pygame.mixer.Sound('sounds/shotgun.mp3')
         """Свойства эффекта выстрела"""
         self.sfx = deque([pygame.image.load(f'sprites/shooting/sfx/img_{i}.png') for i in range(9)])
         self.sfx_length_count = 0
@@ -47,18 +48,26 @@ class Drawing:
         render = self.font.render(fps, 0, 'green')
         self.surface.blit(render, FPS_DRAW_POS)
 
-    def minimap(self, player):
+    def minimap(self, player, npc):
         self.map_surface.fill('black')
         map_x, map_y = player.x // MAP_SCALE, player.y // MAP_SCALE
         pygame.draw.circle(self.map_surface, MAP_COLOR, (map_x, map_y), 5)
         pygame.draw.line(self.map_surface, MAP_COLOR, (map_x, map_y), (map_x + 10 * math.cos(player.angle),
                                                                        map_y + 10 * math.sin(player.angle)))
+        for obj in npc:
+            npc_x, npc_y = obj.x // MAP_SCALE, obj.y // MAP_SCALE
+            if obj.flag == 'npc' and not obj.is_dead:
+                pygame.draw.circle(self.map_surface, 'green', (npc_x, npc_y), 2)
+            elif obj.flag == 'npc' and obj.is_dead:
+                pygame.draw.circle(self.map_surface, PALEGREEN, (npc_x, npc_y), 2)
         for x, y in mini_map:
             pygame.draw.rect(self.map_surface, MAP_COLOR, (x, y, MAP_TILE, MAP_TILE), 5)
         self.surface.blit(self.map_surface, MAP_DRAW_POS)
 
     def weapon(self, shots):
         if self.player.shot:
+            if not self.shot_length_count:
+                self.shot_sound.play()
             self.shot_proj = min(shots)[1] // 2
             self.bullet_sfx()
             shot_sprite = self.w_shot_animation[0]

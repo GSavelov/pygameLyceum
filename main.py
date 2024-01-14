@@ -15,6 +15,7 @@ if __name__ == '__main__':
     player = Player(sprites)
     drawing = Drawing(screen, map_surface, player)
     interaction = Interaction(player, sprites, drawing)
+    interaction.mixer_init()
 
     running = True
     while running:
@@ -35,11 +36,12 @@ if __name__ == '__main__':
         walls, shot = walls_ray_cast(player, drawing.textures)
         drawing.world(walls + [obj.object_locate(player) for obj in sprites.list_of_objects])
         drawing.fps(clock)
-        drawing.minimap(player)
+        drawing.minimap(player, sprites.list_of_objects)
         drawing.weapon([shot, sprites.shot])
 
         interaction.interaction_objects()
         interaction.npc_action()
+        interaction.clear()
 
         pygame.display.flip()
         clock.tick(FPS)

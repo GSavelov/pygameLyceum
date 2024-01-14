@@ -1,6 +1,10 @@
 import pygame
 from config import *
 from collections import deque
+from rayCasting import mapping
+from numba.core import types
+from numba.typed import Dict
+from numba import int32
 
 
 class SpriteObject:
@@ -27,12 +31,18 @@ class SpriteObject:
         self.x, self.y = pos[0] * TILE, pos[1] * TILE
         self.death_anim_count = 0
         self.npc_action_trigger = False
+        self.door_open_trigger = False
+        self.delete = False
+        self.prev_door_pos = self.y if self.flag == 'door_h' else self.y
         if self.view_angles:
             if len(self.obj) == 8:
-                self.angles = [frozenset(range(338, 361)) | frozenset(range(0, 23))] + \
+                self.angles = [frozenset(range(338, 360)) | frozenset(range(0, 23))] + \
                               [frozenset(range(i, i + 45)) for i in range(23, 338, 45)]
                 # Fixed: углы осмотра спрайта
-                self.positions = {angle: pos for angle, pos in zip(self.angles, self.obj)}
+            else:
+                self.angles = [frozenset(range(348, 361)) | frozenset(range(0, 11))] + \
+                                     [frozenset(range(i, i + 23)) for i in range(11, 348, 23)]
+            self.positions = {angle: pos for angle, pos in zip(self.angles, self.obj)}
 
     @property
     def on_fire(self):
@@ -57,11 +67,13 @@ class SpriteObject:
 
         delta_rays = int(gamma / DELTA_A)
         self.current_ray = CENTER_RAY + delta_rays
-        self.distance *= math.cos(H_FOV - self.current_ray * DELTA_A)
+        if self.flag not in {'door_v', 'door_h'}:
+            self.distance *= math.cos(H_FOV - self.current_ray * DELTA_A)
 
         fake_ray = self.current_ray + FAKE_RAYS
         if 0 <= fake_ray <= FAKE_RAYS_RANGE and self.distance > 30:
-            self.proj_height = min(int(PROJ_COEFF / self.distance), D_HEIGHT)
+            self.proj_height = min(int(PROJ_COEFF / self.distance),
+                                   D_HEIGHT if self.flag not in {'door_v', 'door_h'} else HEIGHT)
             # Ограничение проекционной высоты спрайта (В ином случае при приближении падает fps)
             sprite_width = int(self.proj_height * self.scale[0])
             sprite_height = int(self.proj_height * self.scale[1])
@@ -69,15 +81,21 @@ class SpriteObject:
             half_sprite_height = sprite_height // 2
             shift = half_sprite_height * self.shift
 
-            if self.is_dead and self.is_dead != 'immortal':
-                sprite_object = self.dead_animation()
-                shift = half_sprite_height * self.dead_shift
-                sprite_height = int(sprite_height / 1.3)
-            elif self.npc_action_trigger:
-                sprite_object = self.npc_action()
-            else:
+            if self.flag in {'door_v', 'door_h'}:
+                if self.door_open_trigger:
+                    self.open_door()
                 self.obj = self.sprite_view()
                 sprite_object = self.sprite_animation()
+            else:
+                if self.is_dead and self.is_dead != 'immortal':
+                    sprite_object = self.dead_animation()
+                    shift = half_sprite_height * self.dead_shift
+                    sprite_height = int(sprite_height / 1.3)
+                elif self.npc_action_trigger:
+                    sprite_object = self.npc_action()
+                else:
+                    self.obj = self.sprite_view()
+                    sprite_object = self.sprite_animation()
 
             sprite_pos = (self.current_ray * SCALE - half_sprite_width, H_HEIGHT - half_sprite_height + shift)
             sprite = pygame.transform.scale(sprite_object, (sprite_width, sprite_height))
@@ -125,6 +143,17 @@ class SpriteObject:
             self.anim_count = 0
         return sprite_object
 
+    def open_door(self):
+        if self.flag == 'door_h':
+            self.y -= 3
+            if abs(self.y - self.prev_door_pos) > TILE:
+                self.delete = True
+        elif self.flag == 'door_v':
+            self.x -= 3
+            if abs(self.x - self.prev_door_pos) > TILE:
+                self.delete = True
+
+
 
 class Sprites:
     def __init__(self):
@@ -166,6 +195,24 @@ class Sprites:
                 'action': deque(
                     [pygame.image.load(f'sprites/cacodemon/animation/img_{i}.png') for i in range(9)])
             },
+            'soldier': {
+                'sprite': [pygame.image.load(f'sprites/soldier/img_{i}.png').convert_alpha() for i in range(8)],
+                'view_angles': True,
+                'shift': 0.1,
+                'scale': (0.5, 1),
+                'side': 50,
+                'animation': [],
+                'death_anim': deque(
+                    [pygame.image.load(f'sprites/soldier/death_anim/img_{i}.png') for i in range(10)]),
+                'is_dead': None,
+                'dead_shift': 0.6,
+                'anim_dist': 800,
+                'anim_speed': 20,
+                'blocked': True,
+                'flag': 'npc',
+                'action': deque(
+                    [pygame.image.load(f'sprites/soldier/animation/img_{i}.png') for i in range(4)])
+            },
             'flambeau': {
                 'sprite': pygame.image.load('sprites/flambeau/flambeau.png').convert_alpha(),
                 'view_angles': None,
@@ -198,8 +245,40 @@ class Sprites:
                 'blocked': True,
                 'flag': 'decor',
                 'action': []
+            },
+            'door_v': {
+                'sprite': [pygame.image.load(f'sprites/doors/vertical/img_{i}.png').convert_alpha() for i in range(16)],
+                'view_angles': True,
+                'shift': 0.1,
+                'scale': (2.6, 1.2),
+                'side': 100,
+                'animation': [],
+                'death_anim': [],
+                'is_dead': 'immortal',
+                'dead_shift': 0,
+                'anim_dist': 0,
+                'anim_speed': 0,
+                'blocked': True,
+                'flag': 'door_h',
+                'action': deque([pygame.image.load('sprites/soldier/img_0.png').convert_alpha()])
+            },
+            'door_h': {
+                'sprite': [pygame.image.load(f'sprites/doors/horizontal/img_{i}.png').convert_alpha() for i in
+                           range(16)],
+                'view_angles': True,
+                'shift': 0.1,
+                'scale': (2.6, 1.2),
+                'side': 100,
+                'animation': [],
+                'death_anim': [],
+                'is_dead': 'immortal',
+                'dead_shift': 0,
+                'anim_dist': 0,
+                'anim_speed': 0,
+                'blocked': True,
+                'flag': 'door_v',
+                'action': []
             }
-
         }
 
         self.list_of_objects = [
@@ -208,9 +287,20 @@ class Sprites:
             SpriteObject(self.sprites['cacodemon'], (10, 5.5)),
             SpriteObject(self.sprites['flambeau'], (10.9, 4)),
             SpriteObject(self.sprites['flambeau'], (10.9, 7)),
-            SpriteObject(self.sprites['orb'], (2.2, 4))
+            SpriteObject(self.sprites['orb'], (2.2, 4)),
+            SpriteObject(self.sprites['door_v'], (11.5, 8.5)),
+            SpriteObject(self.sprites['soldier'], (10, 7))
         ]
 
     @property
     def shot(self):
         return min([obj.on_fire for obj in self.list_of_objects], default=(float('inf'), 0))
+
+    @property
+    def blocked_doors(self):
+        blocked_doors = Dict.empty(key_type=types.UniTuple(int32, 2), value_type=int32)
+        for obj in self.list_of_objects:
+            if obj.flag in {'door_h', 'door_v'} and obj.blocked:
+                i, j = mapping(obj.x, obj.y)
+                blocked_doors[(i, j)] = 0
+        return blocked_doors
