@@ -5,12 +5,12 @@ from config import *
 from map import world_map, WORLD_WIDTH, WORLD_HEIGHT
 
 
-@njit(fastmath=True)
+@njit(fastmath=True, cache=True)
 def mapping(a, b):
     return (a // TILE) * TILE, (b // TILE) * TILE
 
 
-@njit(fastmath=True)
+@njit(fastmath=True, cache=True)
 def ray_casting(player_pos, player_angle, world_map):
     casted_walls = []
     texture_v, texture_h = 1, 1

@@ -5,21 +5,34 @@ from collections import deque
 
 class SpriteObject:
     def __init__(self, parameters, pos):
-        self.obj = parameters['sprite']
+        # --- base sprite parameters ---
+        self.obj = parameters['sprite'].copy()
         self.view_angles = parameters['view_angles']
         self.shift = parameters['shift']
         self.scale = parameters['scale']
-        self.animation = parameters['animation']
+        # --- death parameters ---
+        self.death_anim = parameters['death_anim'].copy()
+        self.is_dead = parameters['is_dead']
+        self.dead_shift = parameters['dead_shift']
+        # --- animation parameters ---
+        self.animation = parameters['animation'].copy()
         self.anim_dist = parameters['anim_dist']
         self.anim_speed = parameters['anim_speed']
-        self.blocked = parameters['blocked']
-        self.side = 25
         self.anim_count = 0
+        # --- other parameters ---
+        self.flag = parameters['flag']
+        self.action = parameters['action'].copy()
+        self.blocked = parameters['blocked']
+        self.side = parameters['side']
         self.x, self.y = pos[0] * TILE, pos[1] * TILE
-
+        self.death_anim_count = 0
+        self.npc_action_trigger = False
         if self.view_angles:
-            self.angles = [frozenset(range(i, i + 45)) for i in range(0, 360, 45)]
-            self.positions = {angle: pos for angle, pos in zip(self.angles, self.obj)}
+            if len(self.obj) == 8:
+                self.angles = [frozenset(range(338, 361)) | frozenset(range(0, 23))] + \
+                              [frozenset(range(i, i + 45)) for i in range(23, 338, 45)]
+                # Fixed: углы осмотра спрайта
+                self.positions = {angle: pos for angle, pos in zip(self.angles, self.obj)}
 
     @property
     def on_fire(self):
@@ -40,6 +53,7 @@ class SpriteObject:
 
         if dx > 0 and 180 <= math.degrees(player.angle) <= 360 or dx < 0 and dy < 0:
             gamma += DOUBLE_PI
+        self.theta -= 1.4 * gamma
 
         delta_rays = int(gamma / DELTA_A)
         self.current_ray = CENTER_RAY + delta_rays
@@ -47,40 +61,69 @@ class SpriteObject:
 
         fake_ray = self.current_ray + FAKE_RAYS
         if 0 <= fake_ray <= FAKE_RAYS_RANGE and self.distance > 30:
-            self.proj_height = min(int(PROJ_COEFF / self.distance * self.scale), D_HEIGHT)
+            self.proj_height = min(int(PROJ_COEFF / self.distance), D_HEIGHT)
             # Ограничение проекционной высоты спрайта (В ином случае при приближении падает fps)
-            half_proj_height = self.proj_height // 2
-            shift = half_proj_height * self.shift
+            sprite_width = int(self.proj_height * self.scale[0])
+            sprite_height = int(self.proj_height * self.scale[1])
+            half_sprite_width = sprite_width // 2
+            half_sprite_height = sprite_height // 2
+            shift = half_sprite_height * self.shift
 
-            if self.view_angles:
-                if self.theta <= 0:
-                    self.theta += DOUBLE_PI
-                self.theta = 360 - int(math.degrees(self.theta))
+            if self.is_dead and self.is_dead != 'immortal':
+                sprite_object = self.dead_animation()
+                shift = half_sprite_height * self.dead_shift
+                sprite_height = int(sprite_height / 1.3)
+            elif self.npc_action_trigger:
+                sprite_object = self.npc_action()
+            else:
+                self.obj = self.sprite_view()
+                sprite_object = self.sprite_animation()
 
-                for angle in self.angles:
-                    if self.theta in angle:
-                        self.obj = self.positions[angle]
-                        break
-
-            sprite_object = self.obj
-            if self.animation and self.distance < self.anim_dist:
-                sprite_object = self.animation[0]
-                if self.anim_count < self.anim_speed:
-                    self.anim_count += 1
-                else:
-                    self.animation.rotate()
-                    self.anim_count = 0
-            """Анимация спрайтов
-            
-            Используется массив deque из built-in библиотеки collections,
-            так как умеет крайне быстро перемещать первый элемент в конец
-            массива.
-            """
-
-            sprite_pos = (self.current_ray * SCALE - half_proj_height, H_HEIGHT - half_proj_height + shift)
-            sprite = pygame.transform.scale(sprite_object, (self.proj_height, self.proj_height))
+            sprite_pos = (self.current_ray * SCALE - half_sprite_width, H_HEIGHT - half_sprite_height + shift)
+            sprite = pygame.transform.scale(sprite_object, (sprite_width, sprite_height))
             return self.distance, sprite, sprite_pos
         return (False,)
+
+    def sprite_animation(self):
+        if self.animation and self.distance < self.anim_dist:
+            sprite_object = self.animation[0]
+            if self.anim_count < self.anim_speed:
+                self.anim_count += 1
+            else:
+                self.animation.rotate()
+                self.anim_count = 0
+            return sprite_object
+        return self.obj
+
+    def sprite_view(self):
+        if self.view_angles:
+            if self.theta <= 0:
+                self.theta += DOUBLE_PI
+            self.theta = 360 - int(math.degrees(self.theta))
+
+            for angle in self.angles:
+                if self.theta in angle:
+                    return self.positions[angle]
+        return self.obj
+
+    def dead_animation(self):
+        if len(self.death_anim):
+            if self.death_anim_count < self.anim_speed:
+                self.dead_sprite = self.death_anim[0]
+                self.death_anim_count += 1
+            else:
+                self.dead_sprite = self.death_anim.popleft()
+                self.death_anim_count = 0
+        return self.dead_sprite
+
+    def npc_action(self):
+        sprite_object = self.action[0]
+        if self.animation_count < self.anim_speed:
+            self.animation_count += 1
+        else:
+            self.action.rotate()
+            self.animation_count = 0
+        return sprite_object
 
 
 class Sprites:
@@ -90,46 +133,71 @@ class Sprites:
                 'sprite': pygame.image.load('sprites/barrel/barrel.png').convert_alpha(),
                 'view_angles': None,
                 'shift': 1.5,
-                'scale': 0.4,
+                'scale': (0.4, 0.4),
+                'side': 30,
                 'animation': deque(
                     [pygame.image.load(f'sprites/barrel/animation/img_{i}.png') for i in range(12)]),
+                'death_anim': deque(
+                    [pygame.image.load(f'sprites/barrel/death_anim/img_{i}.png') for i in range(4)]),
+                'is_dead': None,
+                'dead_shift': 2.6,
                 'anim_dist': 800,
                 'anim_speed': 10,
-                'blocked': True
+                'blocked': True,
+                'flag': 'decor',
+                'action': []
 
             },
             'cacodemon': {
                 'sprite': [pygame.image.load(f'sprites/cacodemon/state_{i}.png').convert_alpha() for i in range(8)],
                 'view_angles': True,
                 'shift': 0.1,
-                'scale': 1,
-                'animation': deque(
-                    [pygame.image.load(f'sprites/cacodemon/animation/img_{i}.png') for i in range(9)]),
+                'scale': (1, 1),
+                'side': 50,
+                'animation': [],
+                'death_anim': deque(
+                    [pygame.image.load(f'sprites/cacodemon/death_anim/img_{i}.png') for i in range(6)]),
+                'is_dead': None,
+                'dead_shift': 0.6,
                 'anim_dist': 400,
                 'anim_speed': 20,
-                'blocked': True
-
+                'blocked': True,
+                'flag': 'npc',
+                'action': deque(
+                    [pygame.image.load(f'sprites/cacodemon/animation/img_{i}.png') for i in range(9)])
             },
             'flambeau': {
                 'sprite': pygame.image.load('sprites/flambeau/flambeau.png').convert_alpha(),
                 'view_angles': None,
                 'shift': 1.5,
-                'scale': 0.5,
-                'animation': None,
+                'scale': (0.5, 0.5),
+                'side': 30,
+                'animation': [],
+                'death_anim': [],
+                'is_dead': 'immortal',
+                'dead_shift': None,
                 'anim_dist': 800,
                 'anim_speed': 10,
-                'blocked': True
+                'blocked': True,
+                'flag': 'decor',
+                'action': []
             },
             'orb': {
                 'sprite': pygame.image.load('sprites/orb/orb.png').convert_alpha(),
                 'view_angles': None,
                 'shift': 0.1,
-                'scale': 0.5,
+                'scale': (0.5, 0.5),
+                'side': 30,
                 'animation': deque(
                     [pygame.image.load(f'sprites/orb/animation/img_{i}.png') for i in range(8)]),
+                'death_anim': [],
+                'is_dead': 'immortal',
+                'dead_shift': None,
                 'anim_dist': 800,
                 'anim_speed': 20,
-                'blocked': True
+                'blocked': True,
+                'flag': 'decor',
+                'action': []
             }
 
         }

@@ -2,6 +2,7 @@ from rayCasting import walls_ray_cast
 from objects import *
 from player import Player
 from drawing import Drawing
+from interactions import Interaction
 
 if __name__ == '__main__':
     pygame.init()
@@ -13,6 +14,7 @@ if __name__ == '__main__':
     clock = pygame.time.Clock()
     player = Player(sprites)
     drawing = Drawing(screen, map_surface, player)
+    interaction = Interaction(player, sprites, drawing)
 
     running = True
     while running:
@@ -35,6 +37,8 @@ if __name__ == '__main__':
         drawing.fps(clock)
         drawing.minimap(player)
         drawing.weapon([shot, sprites.shot])
+
+        interaction.interaction_objects()
 
         pygame.display.flip()
         clock.tick(FPS)
