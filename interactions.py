@@ -85,5 +85,17 @@ class Interaction:
     def mixer_init(self):
         pygame.mixer.pre_init(44100, -16, 2, 2048)
         pygame.mixer.init()
-        pygame.mixer.music.load("sounds/3D0 Doom - At Doom's Gate.mp3")
-        pygame.mixer.music.play(10, 0.0, 5000)
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.load("sounds/Aubrey Hodges - Retribution Dawns.mp3")
+
+    def check_end(self):
+        if not [obj for obj in self.sprites.list_of_objects if obj.flag == 'npc' and not obj.is_dead]:
+            pygame.mouse.set_visible(True)
+            pygame.mixer.music.stop()
+            pygame.mixer.music.load('sounds/Aubrey Hodges - Retribution Dawns.mp3')
+            pygame.mixer.music.play(10)
+            while True:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        exit()
+                self.drawing.win()

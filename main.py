@@ -7,15 +7,18 @@ from interactions import Interaction
 if __name__ == '__main__':
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.mouse.set_visible(False)
     map_surface = pygame.Surface(MINIMAP)
 
     sprites = Sprites()
     clock = pygame.time.Clock()
     player = Player(sprites)
-    drawing = Drawing(screen, map_surface, player)
+    drawing = Drawing(screen, map_surface, player, clock)
     interaction = Interaction(player, sprites, drawing)
     interaction.mixer_init()
+
+    drawing.menu()
+
+    pygame.mouse.set_visible(False)
 
     running = True
     while running:
@@ -42,6 +45,7 @@ if __name__ == '__main__':
         interaction.interaction_objects()
         interaction.npc_action()
         interaction.clear()
+        interaction.check_end()
 
         pygame.display.flip()
         clock.tick(FPS)

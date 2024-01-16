@@ -34,6 +34,7 @@ class SpriteObject:
         self.door_open_trigger = False
         self.delete = False
         self.prev_door_pos = self.y if self.flag == 'door_h' else self.y
+        self.door_open_sound = pygame.mixer.Sound('sounds/door_open.mp3')
         if self.view_angles:
             if len(self.obj) == 8:
                 self.angles = [frozenset(range(338, 360)) | frozenset(range(0, 23))] + \
@@ -144,6 +145,7 @@ class SpriteObject:
         return sprite_object
 
     def open_door(self):
+        self.door_open_sound.play()
         if self.flag == 'door_h':
             self.y -= 3
             if abs(self.y - self.prev_door_pos) > TILE:
@@ -198,8 +200,8 @@ class Sprites:
             'soldier': {
                 'sprite': [pygame.image.load(f'sprites/soldier/img_{i}.png').convert_alpha() for i in range(8)],
                 'view_angles': True,
-                'shift': 0.1,
-                'scale': (0.5, 1),
+                'shift': 0.5,
+                'scale': (0.4, 0.7),
                 'side': 50,
                 'animation': [],
                 'death_anim': deque(
