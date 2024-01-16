@@ -2,7 +2,6 @@ import pygame
 from numba import njit
 from math import sin, cos
 from config import *
-from map import world_map, WORLD_WIDTH, WORLD_HEIGHT
 
 
 @njit(fastmath=True, cache=True)
@@ -11,7 +10,7 @@ def mapping(a, b):
 
 
 @njit(fastmath=True, cache=True)
-def ray_casting(player_pos, player_angle, world_map):
+def ray_casting(player_pos, player_angle, world_map, WORLD_WIDTH, WORLD_HEIGHT):
     casted_walls = []
     texture_v, texture_h = 1, 1
     ox, oy = player_pos
@@ -55,8 +54,8 @@ def ray_casting(player_pos, player_angle, world_map):
     return casted_walls
 
 
-def walls_ray_cast(player, textures):
-    casted_walls = ray_casting(player.pos, player.angle, world_map)
+def walls_ray_cast(player, textures, world_map, WORLD_WIDTH, WORLD_HEIGHT):
+    casted_walls = ray_casting(player.pos, player.angle, world_map, WORLD_WIDTH, WORLD_HEIGHT)
     shot_size = casted_walls[CENTER_RAY][0], casted_walls[CENTER_RAY][2]
     walls = []
     for ray, casted_values in enumerate(casted_walls):

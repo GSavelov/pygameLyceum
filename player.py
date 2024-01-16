@@ -1,12 +1,12 @@
 import pygame
 from math import cos, sin
 from config import *
-from map import wall_collisions
 
 
 class Player:
-    def __init__(self, sprites):
+    def __init__(self, sprites, collisions):
         self.x, self.y = player_pos
+        self.wall_collisions = collisions
         self.sprites = sprites
         self.angle = player_angle
         self.sensitivity = 0.002
@@ -22,7 +22,7 @@ class Player:
 
     @property
     def collision_list(self):
-        return wall_collisions + [pygame.Rect(*obj.pos, obj.side, obj.side) for obj in self.sprites.list_of_objects if
+        return self.wall_collisions + [pygame.Rect(*obj.pos, obj.side, obj.side) for obj in self.sprites.list_of_objects if
                                   obj.blocked]
 
     def check_collision(self, dx, dy):

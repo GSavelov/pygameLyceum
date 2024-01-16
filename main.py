@@ -3,18 +3,20 @@ from objects import *
 from player import Player
 from drawing import Drawing
 from interactions import Interaction
+from map import WorldMap
 
 if __name__ == '__main__':
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     map_surface = pygame.Surface(MINIMAP)
 
+    world_map = WorldMap('level_1')
     sprites = Sprites()
     sprites.load_objects('level_1')
     clock = pygame.time.Clock()
-    player = Player(sprites)
-    drawing = Drawing(screen, map_surface, player, clock)
-    interaction = Interaction(player, sprites, drawing)
+    player = Player(sprites, world_map.wall_collisions)
+    drawing = Drawing(screen, map_surface, player, clock, world_map.mini_map)
+    interaction = Interaction(player, sprites, drawing, world_map.map)
     interaction.mixer_init()
 
     drawing.menu()
@@ -37,7 +39,8 @@ if __name__ == '__main__':
         screen.fill('black')
 
         drawing.background(player.angle)
-        walls, shot = walls_ray_cast(player, drawing.textures)
+        walls, shot = walls_ray_cast(player, drawing.textures, world_map.map, world_map.WORLD_WIDTH,
+                                     world_map.WORLD_HEIGHT)
         drawing.world(walls + [obj.object_locate(player) for obj in sprites.list_of_objects])
         drawing.fps(clock)
         drawing.minimap(player, sprites.list_of_objects)

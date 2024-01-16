@@ -1,12 +1,12 @@
 import sys
 from random import randrange
 from objects import *
-from map import mini_map
 
 
 class Drawing:
-    def __init__(self, surface, map_surface, player, clock):
+    def __init__(self, surface, map_surface, player, clock, mini_map):
         self.surface = surface
+        self.mini_map = mini_map
         self.map_surface = map_surface
         self.player = player
         self.clock = clock
@@ -68,7 +68,7 @@ class Drawing:
                 pygame.draw.circle(self.map_surface, 'green', (npc_x, npc_y), 2)
             elif obj.flag == 'npc' and obj.is_dead:
                 pygame.draw.circle(self.map_surface, PALEGREEN, (npc_x, npc_y), 2)
-        for x, y in mini_map:
+        for x, y in self.mini_map:
             pygame.draw.rect(self.map_surface, MAP_COLOR, (x, y, MAP_TILE, MAP_TILE), 5)
         self.surface.blit(self.map_surface, MAP_DRAW_POS)
 

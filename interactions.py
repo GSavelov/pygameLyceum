@@ -2,7 +2,6 @@ from math import sin, cos
 import pygame.mixer
 from numba import njit
 from config import *
-from map import world_map
 from rayCasting import mapping
 
 
@@ -40,8 +39,9 @@ def ray_cast_npc(npc_x, npc_y, world_map, doors, p_pos):
 
 
 class Interaction:
-    def __init__(self, player, sprites, drawing):
+    def __init__(self, player, sprites, drawing, world_map):
         self.player = player
+        self.world_map = world_map
         self.sprites = sprites
         self.drawing = drawing
         self.death_sound = pygame.mixer.Sound('sounds/death.mp3')
@@ -51,7 +51,7 @@ class Interaction:
             for obj in sorted(self.sprites.list_of_objects, key=lambda object: object.distance):
                 if obj.on_fire[1]:
                     if obj.is_dead != 'immortal' and not obj.is_dead:
-                        if ray_cast_npc(obj.x, obj.y, world_map, self.sprites.blocked_doors, self.player.pos):
+                        if ray_cast_npc(obj.x, obj.y, self.world_map, self.sprites.blocked_doors, self.player.pos):
                             if obj.flag == 'npc':
                                 self.death_sound.play()
                             obj.is_dead = True
@@ -65,7 +65,7 @@ class Interaction:
     def npc_action(self):
         for obj in self.sprites.list_of_objects:
             if obj.flag == 'npc' and not obj.is_dead:
-                if ray_cast_npc(obj.x, obj.y, world_map, self.sprites.blocked_doors, self.player.pos):
+                if ray_cast_npc(obj.x, obj.y, self.world_map, self.sprites.blocked_doors, self.player.pos):
                     obj.npc_action_trigger = True
                     self.npc_move(obj)
                 else:

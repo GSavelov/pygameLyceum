@@ -31,26 +31,26 @@ def load_map(name):
             print('Неверный формат уровня')
 
 
-matrix_map = load_map('level_1')
-
-WORLD_WIDTH = len(matrix_map[0]) * TILE
-WORLD_HEIGHT = len(matrix_map) * TILE
-world_map = Dict.empty(key_type=types.UniTuple(int32, 2), value_type=int32)
-mini_map = set()
-wall_collisions = []
-for j, row in enumerate(matrix_map):
-    for i, char in enumerate(row):
-        if char:
-            mini_map.add((i * MAP_TILE, j * MAP_TILE))
-            wall_collisions.append(pygame.Rect(i * TILE, j * TILE, TILE, TILE))
-            if char == 1:
-                world_map[(i * TILE, j * TILE)] = 1
-            elif char == 2:
-                world_map[(i * TILE, j * TILE)] = 2
-            elif char == 3:
-                world_map[(i * TILE, j * TILE)] = 3
-            elif char == 4:
-                world_map[(i * TILE, j * TILE)] = 4
-            elif char == 5:
-                world_map[(i * TILE, j * TILE)] = 5
-
+class WorldMap:
+    def __init__(self, lvl):
+        self.matrix = load_map(lvl)
+        self.map = Dict.empty(key_type=types.UniTuple(int32, 2), value_type=int32)
+        self.WORLD_WIDTH = len(self.matrix[0]) * TILE
+        self.WORLD_HEIGHT = len(self.matrix) * TILE
+        self.mini_map = set()
+        self.wall_collisions = []
+        for j, row in enumerate(self.matrix):
+            for i, char in enumerate(row):
+                if char:
+                    self.mini_map.add((i * MAP_TILE, j * MAP_TILE))
+                    self.wall_collisions.append(pygame.Rect(i * TILE, j * TILE, TILE, TILE))
+                    if char == 1:
+                        self.map[(i * TILE, j * TILE)] = 1
+                    elif char == 2:
+                        self.map[(i * TILE, j * TILE)] = 2
+                    elif char == 3:
+                        self.map[(i * TILE, j * TILE)] = 3
+                    elif char == 4:
+                        self.map[(i * TILE, j * TILE)] = 4
+                    elif char == 5:
+                        self.map[(i * TILE, j * TILE)] = 5
