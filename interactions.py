@@ -85,7 +85,7 @@ class Interaction:
     def mixer_init(self):
         pygame.mixer.pre_init(44100, -16, 2, 2048)
         pygame.mixer.init()
-        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.set_volume(0.8)
         pygame.mixer.music.load("sounds/Aubrey Hodges - Retribution Dawns.mp3")
 
     def check_end(self):

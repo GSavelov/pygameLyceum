@@ -1,4 +1,5 @@
 import pygame
+import csv
 from config import *
 from collections import deque
 from rayCasting import mapping
@@ -42,7 +43,7 @@ class SpriteObject:
                 # Fixed: углы осмотра спрайта
             else:
                 self.angles = [frozenset(range(348, 361)) | frozenset(range(0, 11))] + \
-                                     [frozenset(range(i, i + 23)) for i in range(11, 348, 23)]
+                              [frozenset(range(i, i + 23)) for i in range(11, 348, 23)]
             self.positions = {angle: pos for angle, pos in zip(self.angles, self.obj)}
 
     @property
@@ -154,7 +155,6 @@ class SpriteObject:
             self.x -= 3
             if abs(self.x - self.prev_door_pos) > TILE:
                 self.delete = True
-
 
 
 class Sprites:
@@ -283,16 +283,13 @@ class Sprites:
             }
         }
 
-        self.list_of_objects = [
-            SpriteObject(self.sprites['barrel'], (2.2, 3)),
-            SpriteObject(self.sprites['barrel'], (2.2, 5)),
-            SpriteObject(self.sprites['cacodemon'], (10, 5.5)),
-            SpriteObject(self.sprites['flambeau'], (10.9, 4)),
-            SpriteObject(self.sprites['flambeau'], (10.9, 7)),
-            SpriteObject(self.sprites['orb'], (2.2, 4)),
-            SpriteObject(self.sprites['door_v'], (11.5, 8.5)),
-            SpriteObject(self.sprites['soldier'], (10, 7))
-        ]
+        self.list_of_objects = []
+
+    def load_objects(self, name):
+        with open('levels/' + name + '.csv', encoding='utf-8') as objects:
+            data = list(csv.reader(objects, delimiter=';'))
+            self.list_of_objects = [SpriteObject(self.sprites[key], tuple(map(float, pos.split(', ')))) for key, pos in
+                                    data]
 
     @property
     def shot(self):

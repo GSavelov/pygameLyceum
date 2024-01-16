@@ -10,6 +10,7 @@ if __name__ == '__main__':
     map_surface = pygame.Surface(MINIMAP)
 
     sprites = Sprites()
+    sprites.load_objects('level_1')
     clock = pygame.time.Clock()
     player = Player(sprites)
     drawing = Drawing(screen, map_surface, player, clock)
