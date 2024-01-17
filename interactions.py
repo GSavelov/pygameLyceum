@@ -1,6 +1,8 @@
 from math import sin, cos
 import pygame.mixer
 from numba import njit
+
+import config
 from config import *
 from rayCasting import mapping
 
@@ -82,20 +84,20 @@ class Interaction:
         deleted_objects = self.sprites.list_of_objects[:]
         [self.sprites.list_of_objects.remove(obj) for obj in deleted_objects if obj.delete]
 
-    def mixer_init(self):
-        pygame.mixer.pre_init(44100, -16, 2, 2048)
-        pygame.mixer.init()
-        pygame.mixer.music.set_volume(0.8)
-        pygame.mixer.music.load("sounds/Aubrey Hodges - Retribution Dawns.mp3")
-
-    def check_end(self):
+    def check_end(self, score):
         if not [obj for obj in self.sprites.list_of_objects if obj.flag == 'npc' and not obj.is_dead]:
             pygame.mouse.set_visible(True)
             pygame.mixer.music.stop()
             pygame.mixer.music.load('sounds/Aubrey Hodges - Retribution Dawns.mp3')
             pygame.mixer.music.play(10)
+            with open('levels/score.txt', 'r') as file:
+                data = float(file.readline().strip())
+            if data:
+                with open('levels/score.txt', 'w') as file:
+                    file.write(str(score))
+
             while True:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         exit()
-                self.drawing.win()
+                self.drawing.win(score)

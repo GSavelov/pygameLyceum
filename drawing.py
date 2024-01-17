@@ -1,10 +1,13 @@
 import sys
 from random import randrange
+
+import pygame
+
 from objects import *
 
 
 class Drawing:
-    def __init__(self, surface, map_surface, player, clock, mini_map):
+    def __init__(self, surface, map_surface, player, clock, mini_map, select):
         self.surface = surface
         self.mini_map = mini_map
         self.map_surface = map_surface
@@ -12,16 +15,17 @@ class Drawing:
         self.clock = clock
         self.font = pygame.font.Font(None, 36)
         self.label_font = pygame.font.Font('fonts/better-vcr-5.4.ttf', 150)
-        self.button_font = pygame.font.Font('fonts/better-vcr-5.4.ttf', 100)
+        self.score_font = pygame.font.Font('fonts/better-vcr-5.4.ttf', 20)
+        if select == 'level_1':
+            skybox = pygame.image.load('textures/skybox.png').convert()
+        else:
+            skybox = pygame.image.load('textures/doom_skybox.png').convert()
         self.textures = {1: pygame.image.load('textures/brick_wall.png').convert(),
                          2: pygame.image.load('textures/brick_moss_wall.png').convert(),
                          3: pygame.image.load('textures/doom_brick_wall.png').convert(),
                          4: pygame.image.load('textures/doom_metal_wall.png').convert(),
                          5: pygame.image.load('textures/doom_metal_sheet_wall.png').convert(),
-                         's': pygame.image.load('textures/doom_skybox.png').convert()}
-        # Параметры меню
-        self.menu_trigger = True
-        self.menu_pic = pygame.image.load('textures/menu.png').convert()
+                         's': skybox}
         """Отрисовка оружия"""
         self.w_base_sprite = pygame.image.load('sprites/shooting/shotgun.png').convert_alpha()
         self.w_shot_animation = deque([pygame.image.load(f'sprites/shooting/shotgun/img_{i}.png') for i in range(20)])
@@ -102,25 +106,56 @@ class Drawing:
             self.sfx_length_count += 1
             self.sfx.rotate(-1)
 
-    def draw_buttons(self, button, shift_h, shift_v, text, color, width=0):
-        field = self.button_font.render(text, 1, color)
-        pygame.draw.rect(self.surface, 'black', button, border_radius=20, width=width)
-        self.surface.blit(field, (button.centerx - shift_h, button.centery - shift_v))
-
-    def win(self):
+    def win(self, score):
         render = self.label_font.render('you win!', 1, (randrange(150, 200), 0, 0))
+        score_render = self.score_font.render('Score: ' + str(round(score)), 1, 'white')
         rect = pygame.Rect(0, 0, 1000, 250)
         rect.center = H_WIDTH, H_HEIGHT
         pygame.draw.rect(self.surface, 'black', rect, border_radius=10)
         self.surface.blit(render, (rect.centerx - 430, rect.centery - 90))
+        self.surface.blit(score_render, (500, 480))
         pygame.display.flip()
         self.clock.tick(15)
 
+
+class MenuDrawing:
+    def __init__(self, surface, clock):
+        self.surface = surface
+        self.clock = clock
+        self.button_font = pygame.font.Font('fonts/better-vcr-5.4.ttf', 100)
+        self.label_font = pygame.font.Font('fonts/better-vcr-5.4.ttf', 150)
+        self.score_font = pygame.font.Font('fonts/better-vcr-5.4.ttf', 25)
+        self.menu_pic = pygame.image.load('textures/menu.png').convert()
+        self.menu_trigger = True
+        self.select = 'level_1'
+
+    def mixer_init(self):
+        pygame.mixer.pre_init(44100, -16, 2, 2048)
+        pygame.mixer.init()
+        pygame.mixer.music.set_volume(0.8)
+        pygame.mixer.music.load('sounds/Aubrey Hodges - Retribution Dawns.mp3')
+
+    def draw_buttons(self, button, shift_h, shift_v, text, color, font, width=0, selected=False):
+        if selected:
+            field = font.render(text, 1, 'red')
+        else:
+            field = font.render(text, 1, color)
+        pygame.draw.rect(self.surface, 'black', button, border_radius=20, width=width)
+        self.surface.blit(field, (button.centerx - shift_h, button.centery - shift_v))
+
     def menu(self):
+        with open('levels/score.txt', 'r') as score:
+            last_score = round(float(score.readline().strip()))
+
         button_start = pygame.Rect(0, 0, 400, 150)
         button_start.center = H_WIDTH, H_HEIGHT
         button_exit = pygame.Rect(0, 0, 400, 150)
         button_exit.center = H_WIDTH, H_HEIGHT + 200
+
+        button_level_1 = pygame.Rect(0, 0, 180, 50)
+        button_level_1.center = 490, 280
+        button_level_2 = pygame.Rect(0, 0, 180, 50)
+        button_level_2.center = 710, 280
 
         pygame.mixer.music.play()
 
@@ -132,26 +167,42 @@ class Drawing:
 
             self.surface.blit(self.menu_pic, (0, 0))
 
-            self.draw_buttons(button_start, 185, 50, 'START', 'white')
-            self.draw_buttons(button_exit, 150, 50, 'EXIT', 'white')
+            if self.select == 'level_1':
+                self.draw_buttons(button_level_1, 60, 10, 'Cellar', 'white', self.score_font, selected=True)
+                self.draw_buttons(button_level_2, 40, 10, 'Mars', 'white', self.score_font)
+            else:
+                self.draw_buttons(button_level_1, 60, 10, 'Cellar', 'white', self.score_font)
+                self.draw_buttons(button_level_2, 40, 10, 'Mars', 'white', self.score_font, selected=True)
+
+            self.draw_buttons(button_start, 185, 50, 'START', 'white', self.button_font)
+            self.draw_buttons(button_exit, 150, 50, 'EXIT', 'white', self.button_font)
 
             label = self.label_font.render('PyDOOM', 1, (randrange(150, 200), 0, 0))
             self.surface.blit(label, (280, 70))
 
+            score = self.score_font.render('Last score:' + str(last_score), 1, 'white')
+            self.surface.blit(score, (50, 20))
+
             mouse_pos = pygame.mouse.get_pos()
             mouse_click = pygame.mouse.get_pressed()
             if button_start.collidepoint(mouse_pos):
-                self.draw_buttons(button_start, 185, 40, 'START', (randrange(150, 200), 0, 0))
+                self.draw_buttons(button_start, 185, 40, 'START', (randrange(150, 200), 0, 0), self.button_font)
                 if mouse_click[0]:
                     self.menu_trigger = False
                     pygame.mixer.music.stop()
                     pygame.mixer.music.load("sounds/3D0 Doom - At Doom's Gate.mp3")
                     pygame.mixer.music.play(10, 0.0, 5000)
             elif button_exit.collidepoint(mouse_pos):
-                self.draw_buttons(button_exit, 150, 40, 'EXIT', (randrange(150, 200), 0, 0))
+                self.draw_buttons(button_exit, 150, 40, 'EXIT', (randrange(150, 200), 0, 0), self.button_font)
                 if mouse_click[0]:
                     pygame.quit()
                     sys.exit()
+            elif button_level_1.collidepoint(mouse_pos):
+                if mouse_click[0]:
+                    self.select = 'level_1'
+            elif button_level_2.collidepoint(mouse_pos):
+                if mouse_click[0]:
+                    self.select = 'level_2'
 
             pygame.display.flip()
             self.clock.tick(10)

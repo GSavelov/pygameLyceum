@@ -1,7 +1,7 @@
 from rayCasting import walls_ray_cast
 from objects import *
 from player import Player
-from drawing import Drawing
+from drawing import Drawing, MenuDrawing
 from interactions import Interaction
 from map import WorldMap
 
@@ -9,20 +9,22 @@ if __name__ == '__main__':
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     map_surface = pygame.Surface(MINIMAP)
-
-    world_map = WorldMap('level_1')
-    sprites = Sprites()
-    sprites.load_objects('level_1')
     clock = pygame.time.Clock()
-    player = Player(sprites, world_map.wall_collisions)
-    drawing = Drawing(screen, map_surface, player, clock, world_map.mini_map)
-    interaction = Interaction(player, sprites, drawing, world_map.map)
-    interaction.mixer_init()
 
-    drawing.menu()
+    menu = MenuDrawing(screen, clock)
+    menu.mixer_init()
+    menu.menu()
+
+    world_map = WorldMap(menu.select)
+    sprites = Sprites()
+    sprites.load_objects(menu.select)
+    player = Player(sprites, world_map.wall_collisions)
+    drawing = Drawing(screen, map_surface, player, clock, world_map.mini_map, menu.select)
+    interaction = Interaction(player, sprites, drawing, world_map.map)
 
     pygame.mouse.set_visible(False)
 
+    score = START_SCORE
     running = True
     while running:
         for event in pygame.event.get():
@@ -34,6 +36,9 @@ if __name__ == '__main__':
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == pygame.BUTTON_LEFT and not player.shot:
                     player.shot = True
+
+        if score > 0:
+            score -= SCORE_COEFF
 
         player.movement()
         screen.fill('black')
@@ -49,7 +54,7 @@ if __name__ == '__main__':
         interaction.interaction_objects()
         interaction.npc_action()
         interaction.clear()
-        interaction.check_end()
+        interaction.check_end(score)
 
         pygame.display.flip()
         clock.tick(FPS)
