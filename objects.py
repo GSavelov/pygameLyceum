@@ -171,7 +171,7 @@ class Sprites:
                 'death_anim': deque(
                     [pygame.image.load(f'sprites/barrel/death_anim/img_{i}.png') for i in range(4)]),
                 'is_dead': None,
-                'dead_shift': 2.6,
+                'dead_shift': 2,
                 'anim_dist': 800,
                 'anim_speed': 10,
                 'blocked': True,
@@ -218,7 +218,7 @@ class Sprites:
             'flambeau': {
                 'sprite': pygame.image.load('sprites/flambeau/flambeau.png').convert_alpha(),
                 'view_angles': None,
-                'shift': 1.5,
+                'shift': 1.2,
                 'scale': (0.5, 0.5),
                 'side': 30,
                 'animation': [],

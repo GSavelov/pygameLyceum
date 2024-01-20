@@ -1,8 +1,5 @@
 import sys
 from random import randrange
-
-import pygame
-
 from objects import *
 
 
@@ -72,6 +69,13 @@ class Drawing:
                 pygame.draw.circle(self.map_surface, 'green', (npc_x, npc_y), 2)
             elif obj.flag == 'npc' and obj.is_dead:
                 pygame.draw.circle(self.map_surface, PALEGREEN, (npc_x, npc_y), 2)
+            elif obj.flag == 'door_v':
+                pygame.draw.rect(self.map_surface, 'red', (npc_x - 2.5, npc_y - 5, 100 // MAP_SCALE, 50 // MAP_SCALE))
+            elif obj.flag == 'door_h':
+                pygame.draw.rect(self.map_surface, 'red', (npc_x - 2.5, npc_y - 5, 50 // MAP_SCALE, 100 // MAP_SCALE))
+            else:
+                pygame.draw.circle(self.map_surface, 'red', (npc_x, npc_y), 2)
+
         for x, y in self.mini_map:
             pygame.draw.rect(self.map_surface, MAP_COLOR, (x, y, MAP_TILE, MAP_TILE), 5)
         self.surface.blit(self.map_surface, MAP_DRAW_POS)
@@ -132,7 +136,7 @@ class MenuDrawing:
     def mixer_init(self):
         pygame.mixer.pre_init(44100, -16, 2, 2048)
         pygame.mixer.init()
-        pygame.mixer.music.set_volume(0.8)
+        pygame.mixer.music.set_volume(1)
         pygame.mixer.music.load('sounds/Aubrey Hodges - Retribution Dawns.mp3')
 
     def draw_buttons(self, button, shift_h, shift_v, text, color, font, width=0, selected=False):
@@ -164,14 +168,18 @@ class MenuDrawing:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        pygame.quit()
+                        sys.exit()
 
             self.surface.blit(self.menu_pic, (0, 0))
 
             if self.select == 'level_1':
-                self.draw_buttons(button_level_1, 60, 10, 'Cellar', 'white', self.score_font, selected=True)
+                self.draw_buttons(button_level_1, 50, 10, 'Earth', 'white', self.score_font, selected=True)
                 self.draw_buttons(button_level_2, 40, 10, 'Mars', 'white', self.score_font)
             else:
-                self.draw_buttons(button_level_1, 60, 10, 'Cellar', 'white', self.score_font)
+                self.draw_buttons(button_level_1, 50, 10, 'Earth', 'white', self.score_font)
                 self.draw_buttons(button_level_2, 40, 10, 'Mars', 'white', self.score_font, selected=True)
 
             self.draw_buttons(button_start, 185, 50, 'START', 'white', self.button_font)
@@ -191,6 +199,7 @@ class MenuDrawing:
                     self.menu_trigger = False
                     pygame.mixer.music.stop()
                     pygame.mixer.music.load("sounds/3D0 Doom - At Doom's Gate.mp3")
+                    pygame.mixer.music.set_volume(0.3)
                     pygame.mixer.music.play(10, 0.0, 5000)
             elif button_exit.collidepoint(mouse_pos):
                 self.draw_buttons(button_exit, 150, 40, 'EXIT', (randrange(150, 200), 0, 0), self.button_font)

@@ -1,8 +1,6 @@
 from math import sin, cos
 import pygame.mixer
 from numba import njit
-
-import config
 from config import *
 from rayCasting import mapping
 
@@ -59,7 +57,7 @@ class Interaction:
                             obj.is_dead = True
                             obj.blocked = None
                             self.drawing.shot_anim_trigger = False
-                    if obj.flag in {'door_v', 'door_h'} and obj.distance < TILE:
+                    if obj.flag in {'door_v', 'door_h'} and obj.distance < 2 * TILE:
                         obj.door_open_trigger = True
                         obj.blocked = None
                     break
@@ -89,6 +87,7 @@ class Interaction:
             pygame.mouse.set_visible(True)
             pygame.mixer.music.stop()
             pygame.mixer.music.load('sounds/Aubrey Hodges - Retribution Dawns.mp3')
+            pygame.mixer.music.set_volume(0.5)
             pygame.mixer.music.play(10)
             with open('levels/score.txt', 'r') as file:
                 data = float(file.readline().strip())
@@ -100,4 +99,8 @@ class Interaction:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         exit()
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_ESCAPE:
+                            pygame.quit()
+                            exit()
                 self.drawing.win(score)

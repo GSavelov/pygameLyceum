@@ -1,8 +1,18 @@
-barrel;2.2, 3
-barrel;2.2, 5
-flambeau;10.9, 4
-secret_npc;10.9, 7
-orb;2.2, 4
-door_v;11.5, 8.5
-soldier;10, 7
-cacodemon; 10, 5.5
+flambeau; 19.2, 6.2
+flambeau; 19.2, 9.8
+flambeau; 21.8, 6.2
+flambeau; 21.8, 9.8
+door_h; 20.5, 5.5
+door_h; 20.5, 10.5
+door_v; 11.5, 3.5
+door_v; 11.5, 12.5
+barrel; 12.2, 2.8
+barrel; 12.2, 4.2
+barrel; 12.2, 11.8
+barrel; 12.2, 13.2
+soldier; 14, 3
+soldier; 14, 4
+soldier; 14, 12
+soldier; 14, 13
+cacodemon; 6, 4.5
+cacodemon; 6, 11.5

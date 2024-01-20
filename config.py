@@ -22,7 +22,7 @@ MAP_DRAW_POS = (0, HEIGHT - HEIGHT // MINIMAP_SCALE)
 MAP_COLOR = (171, 10, 10)
 
 # Player settings
-player_pos = H_WIDTH, H_HEIGHT
+player_pos = 2 * WIDTH - H_WIDTH // 2, HEIGHT
 player_angle = 0
 player_speed = 4
 

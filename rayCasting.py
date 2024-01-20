@@ -10,7 +10,7 @@ def mapping(a, b):
 
 
 @njit(fastmath=True, cache=True)
-def ray_casting(player_pos, player_angle, world_map, WORLD_WIDTH, WORLD_HEIGHT):
+def ray_casting(player_pos, player_angle, world_map, w_width, w_height):
     casted_walls = []
     texture_v, texture_h = 1, 1
     ox, oy = player_pos
@@ -23,7 +23,7 @@ def ray_casting(player_pos, player_angle, world_map, WORLD_WIDTH, WORLD_HEIGHT):
         cos_a = cos_a if cos_a else 0.000001
 
         x, dx = (xm + TILE, 1) if cos_a >= 0 else (xm, -1)
-        for i in range(0, WORLD_WIDTH, TILE):
+        for i in range(0, w_width, TILE):
             depth_v = (x - ox) / cos_a
             yv = oy + depth_v * sin_a
             tile_v = mapping(x + dx, yv)
@@ -33,7 +33,7 @@ def ray_casting(player_pos, player_angle, world_map, WORLD_WIDTH, WORLD_HEIGHT):
             x += dx * TILE
 
         y, dy = (ym + TILE, 1) if sin_a >= 0 else (ym, -1)
-        for i in range(0, WORLD_HEIGHT, TILE):
+        for i in range(0, w_height, TILE):
             depth_h = (y - oy) / sin_a
             xh = ox + depth_h * cos_a
             tile_h = mapping(xh, y + dy)
@@ -54,8 +54,8 @@ def ray_casting(player_pos, player_angle, world_map, WORLD_WIDTH, WORLD_HEIGHT):
     return casted_walls
 
 
-def walls_ray_cast(player, textures, world_map, WORLD_WIDTH, WORLD_HEIGHT):
-    casted_walls = ray_casting(player.pos, player.angle, world_map, WORLD_WIDTH, WORLD_HEIGHT)
+def walls_ray_cast(player, textures, world_map, w_width, w_height):
+    casted_walls = ray_casting(player.pos, player.angle, world_map, w_width, w_height)
     shot_size = casted_walls[CENTER_RAY][0], casted_walls[CENTER_RAY][2]
     walls = []
     for ray, casted_values in enumerate(casted_walls):
